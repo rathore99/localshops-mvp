@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalShops | Reserve item</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <div>
+        <a href="shop-details.html" class="button button-secondary">Back</a>
+      </div>
+      <h1 class="title">Reserve items</h1>
+    </header>
+
+    <section class="card">
+      <div class="section-title">Your reservation</div>
+      <div class="product-card">
+        <h3>Blue cotton kurti</h3>
+        <p class="small-text">₹699 · 1 unit</p>
+      </div>
+
+      <form>
+        <div style="margin-bottom:16px;">
+          <label for="name" style="display:block;font-weight:600;margin-bottom:6px;">Customer name</label>
+          <input id="name" class="search-input" type="text" placeholder="Enter your name" />
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="phone" style="display:block;font-weight:600;margin-bottom:6px;">Phone number</label>
+          <input id="phone" class="search-input" type="tel" placeholder="+91 98765 43210" />
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="note" style="display:block;font-weight:600;margin-bottom:6px;">Note for shop</label>
+          <textarea id="note" class="search-input" style="height:110px;" placeholder="Add any request or preferred pickup time"></textarea>
+        </div>
+        <a class="button" href="#">Confirm reservation</a>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
