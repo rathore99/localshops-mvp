@@ -265,20 +265,32 @@ git branch -r
 
 ---
 
-## 10. Branch Protection Rules (Set on GitHub website)
+## 10. Branch Protection
 
-After pushing, configure these protection rules on GitHub:
-- Go to: https://github.com/rathore99/localshops-mvp/settings/branches
+GitHub branch protection rules require GitHub Pro ($4/month) for private repos.
+Since this is a solo project, we use a **local git pre-push hook** instead.
 
-### For `main`:
-- [x] Require a pull request before merging
-- [x] Require approvals: 1
-- [x] Require status checks to pass before merging (CI must be green)
-- [x] Do not allow bypassing the above settings
+### Pre-push hook (already installed at `.git/hooks/pre-push`)
+Blocks any direct push to `main` or `develop`. You must always work on a feature
+branch and open a PR.
 
-### For `develop`:
-- [x] Require a pull request before merging
-- [x] Require status checks to pass
+```bash
+# The hook is at .git/hooks/pre-push — it runs automatically on every git push.
+# To verify it is active, try pushing directly to main — it will be rejected:
+git checkout main
+git push origin main
+# → ERROR: Direct push to 'main' is not allowed.
+
+# To reinstall on a new clone (hooks are not tracked by git):
+cp .git/hooks/pre-push /path/to/new-clone/.git/hooks/pre-push
+chmod +x /path/to/new-clone/.git/hooks/pre-push
+```
+
+### Note on GitHub Free vs Pro
+- GitHub Free: branch protection NOT enforced on private repos
+- GitHub Pro ($4/month): branch protection enforced on private repos
+- GitHub Team ($4/user/month): rulesets + organization features
+- Alternative: make the repo public — branch protection is free on public repos
 
 ---
 
