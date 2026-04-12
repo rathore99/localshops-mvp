@@ -5,6 +5,139 @@
 
 ---
 
+## #5 — Dev server port 8080 conflicts with Apache httpd
+
+**Date:** 2026-04-12
+**Status:** Fixed
+**File:** `backend/src/main/resources/application-dev.yml`
+
+### Error
+
+```
+APPLICATION FAILED TO START
+Description: Web server failed to start. Port 8080 was already in use.
+```
+
+### Root Cause
+
+Apache HTTP server (`httpd`, PID 4908) is installed on this machine and holds
+port 8080 as a system service. It cannot be terminated without admin privileges.
+The `application.yml` default `server.port: 8080` conflicts with it.
+
+### Fix
+
+Set `server.port: 8085` in `application-dev.yml`. Dev overrides the default.
+Prod uses `${PORT:8080}` (Railway injects `PORT` at runtime — no conflict there).
+
+Also updated `frontend/.env.example` to reflect the dev port:
+```
+VITE_API_BASE_URL=http://localhost:8085/api/v1
+```
+
+### Verification
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# Tomcat started on port 8085
+# GET http://localhost:8085/api/v1/health → {"status":"UP"}
+```
+
+---
+
+## #4 — Stale build artifact caused GIN index to reappear after file move
+
+**Date:** 2026-04-12
+**Status:** Fixed
+**File:** `backend/target/classes/db/migration/postgresql/V1_1__postgresql_indexes.sql`
+
+### Error
+
+Same GIN syntax error as #2 and #3, even after the file was moved out of
+`db/migration/postgresql/` in the source tree.
+
+### Root Cause
+
+Maven's `resources:resources` goal copies files from `src/main/resources` to
+`target/classes` but **does not delete files that have been removed from the
+source**. The old `target/classes/db/migration/postgresql/V1_1__postgresql_indexes.sql`
+remained from a previous build. Flyway scans `classpath:db/migration`
+recursively and found the stale file in the compiled output.
+
+### Fix
+
+```bash
+cd backend
+mvn clean   # wipes target/ entirely
+# Then rebuild with:
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+### Rule to Remember
+
+After deleting or moving any file under `src/main/resources`, always run
+`mvn clean` before the next `spring-boot:run`. Incremental builds do not clean
+deleted resource files from `target/classes`.
+
+---
+
+## #3 — Flyway scans db/migration subdirectories recursively — PostgreSQL-only migration runs on H2
+
+**Date:** 2026-04-12
+**Status:** Fixed
+**Files:** `V1_1__postgresql_indexes.sql` moved, `application-prod.yml` updated
+
+### Error
+
+Same GIN index error as #2 — persisted even after moving the file to
+`db/migration/postgresql/` because Flyway recursively scans all subdirectories
+of every configured location.
+
+### Root Cause
+
+Flyway 9.x scans all locations recursively by default. Setting
+`spring.flyway.locations: classpath:db/migration` causes Flyway to scan
+`db/migration/` and ALL subdirectories — including `db/migration/postgresql/`.
+There is no built-in Flyway option to disable recursive scanning in Flyway 9.
+
+### Fix
+
+Move the PostgreSQL-specific migration to a **sibling directory** completely
+outside `db/migration/`:
+
+```
+Before (WRONG — still inside db/migration/):
+  db/migration/postgresql/V1_1__postgresql_indexes.sql  ← Flyway finds this on dev too
+
+After (CORRECT — sibling, not child):
+  db/migration/V1__initial_schema.sql
+  db/postgresql/V1_1__postgresql_indexes.sql            ← Only reachable if explicitly added
+  db/seed/V99__seed_data.sql
+```
+
+Flyway location config per profile:
+
+| Profile | `spring.flyway.locations` | Sees `db/postgresql`? |
+|---|---|---|
+| `dev` (H2) | `classpath:db/migration, classpath:db/seed` | No |
+| `prod` (PostgreSQL) | `classpath:db/migration, classpath:db/postgresql` | Yes |
+
+Updated `application-prod.yml`:
+```yaml
+flyway:
+  locations: classpath:db/migration,classpath:db/postgresql
+```
+
+### Verification
+
+```bash
+mvn clean
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# Flyway applies only V1 + V99 — no GIN index error
+# GET http://localhost:8085/api/v1/shops → 200 with 5 shops
+```
+
+---
+
 ## #2 — GIN index in V1 migration fails on H2 (dev profile)
 
 **Date:** 2026-04-12
