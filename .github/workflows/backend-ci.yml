@@ -1,0 +1,47 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run unit tests
+        working-directory: backend
+        run: mvn test -Dtest="*Test" -DfailIfNoTests=false
+
+      - name: Run integration tests
+        working-directory: backend
+        run: mvn test -Dtest="*IntegrationTest" -DfailIfNoTests=false
+        # Testcontainers will spin up PostgreSQL automatically inside the runner
+        # GitHub Actions ubuntu runners have Docker available
+
+      - name: Build JAR
+        working-directory: backend
+        run: mvn package -DskipTests
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/
