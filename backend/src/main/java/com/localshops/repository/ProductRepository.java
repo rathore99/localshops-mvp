@@ -10,7 +10,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByShopId(Long shopId);
 
-    // Full-text search across product names — used in Feature 2
+    // ILIKE search — works on H2 (dev) and PostgreSQL (prod).
+    // Used now for Feature 1 dev-mode search.
+    @Query("""
+            SELECT p FROM Product p
+            JOIN FETCH p.shop s
+            WHERE s.isActive = true
+              AND UPPER(p.name) LIKE UPPER(:pattern)
+            ORDER BY p.name
+            """)
+    List<Product> searchByNameIlike(String pattern);
+
+    // Full-text search — PostgreSQL only, wired in Feature 2.
     @Query(value = """
             SELECT p.* FROM products p
             JOIN shops s ON s.id = p.shop_id
