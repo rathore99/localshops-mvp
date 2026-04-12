@@ -11,7 +11,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
   flyway:
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/migration/postgresql
 
 server:
   port: ${PORT:8080}

@@ -44,10 +44,11 @@ CREATE TABLE admin_users (
     created_at    TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
--- Indexes
-CREATE INDEX idx_shops_is_active        ON shops(is_active);
-CREATE INDEX idx_shops_category         ON shops(category);
-CREATE INDEX idx_products_shop_id       ON products(shop_id);
-CREATE INDEX idx_products_name_search   ON products USING gin(to_tsvector('english', name));
-CREATE INDEX idx_reservations_shop_id   ON reservations(shop_id);
-CREATE INDEX idx_reservations_status    ON reservations(status);
+-- Indexes (BTREE only — compatible with H2 dev and PostgreSQL prod)
+-- GIN full-text index lives in db/migration/postgresql/V1_1__postgresql_indexes.sql
+-- and is applied only in the prod profile where PostgreSQL is used.
+CREATE INDEX idx_shops_is_active      ON shops(is_active);
+CREATE INDEX idx_shops_category       ON shops(category);
+CREATE INDEX idx_products_shop_id     ON products(shop_id);
+CREATE INDEX idx_reservations_shop_id ON reservations(shop_id);
+CREATE INDEX idx_reservations_status  ON reservations(status);
