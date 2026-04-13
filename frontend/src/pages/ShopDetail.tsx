@@ -167,15 +167,19 @@ export default function ShopDetail() {
         </section>
       </main>
 
-      {/* Sticky Reserve CTA */}
+      {/* Sticky Reserve CTA — TODO [Feature 3]: wire to POST /api/v1/reservations */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-10">
-        <div className="max-w-2xl mx-auto">
-          <a
-            href={`/reserve/${shop.id}`}
-            className="btn-primary w-full text-center"
+        <div className="max-w-2xl mx-auto space-y-1">
+          <button
+            disabled
+            className="w-full rounded-xl bg-gray-300 text-gray-500 font-semibold text-sm
+                       min-h-[48px] cursor-not-allowed opacity-70"
           >
-            Reserve Items from this Shop
-          </a>
+            Reserve Items — Coming Soon
+          </button>
+          <p className="text-xs text-center text-amber-600">
+            🔧 Reservation feature coming soon — call or WhatsApp the shop to reserve
+          </p>
         </div>
       </div>
     </div>
