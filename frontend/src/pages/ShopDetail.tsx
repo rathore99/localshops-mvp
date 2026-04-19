@@ -19,6 +19,10 @@ export default function ShopDetail() {
 
   const callUrl = shop ? `tel:+91${shop.phone}` : null
 
+  const mapsUrl = shop
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${shop.address}, ${shop.town}, Madhya Pradesh, India`)}`
+    : null
+
   const availableCount = shop?.products.filter(p => p.isAvailable).length ?? 0
   const totalCount = shop?.products.length ?? 0
 
@@ -87,7 +91,25 @@ export default function ShopDetail() {
 
       <main className="max-w-2xl mx-auto px-4 pb-24 pt-6 space-y-5">
         {/* Shop info card */}
-        <section className="card space-y-3">
+        <section className="card overflow-hidden space-y-3 !p-0">
+          {/* Banner image */}
+          <div className="w-full h-48 bg-gray-100 overflow-hidden">
+            {shop.imageUrl ? (
+              <img
+                src={shop.imageUrl}
+                alt={shop.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+                <span className="text-white text-6xl font-bold opacity-30">
+                  {shop.name.charAt(0)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="px-4 pb-4 space-y-3">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{shop.name}</h2>
             <span className="inline-block mt-1 text-xs font-medium text-brand-600 bg-brand-50 rounded-full px-2 py-0.5">
@@ -100,13 +122,22 @@ export default function ShopDetail() {
           )}
 
           <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-start gap-2">
-              <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a
+              href={mapsUrl ?? '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start gap-2 group hover:text-brand-600 transition-colors"
+              aria-label="View shop location on Google Maps"
+            >
+              <svg className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0 group-hover:text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span>{shop.address}, {shop.town}</span>
-            </div>
+              <div>
+                <span className="block">{shop.address}, {shop.town}</span>
+                <span className="text-xs text-brand-500 group-hover:text-brand-700 font-medium">View on Google Maps →</span>
+              </div>
+            </a>
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -140,6 +171,7 @@ export default function ShopDetail() {
               </a>
             )}
           </div>
+          </div>{/* end px-4 pb-4 */}
         </section>
 
         {/* Products */}

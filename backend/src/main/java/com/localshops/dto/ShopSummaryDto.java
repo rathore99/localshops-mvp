@@ -9,12 +9,14 @@ public record ShopSummaryDto(
         String phone,
         String address,
         String town,
-        String description
+        String description,
+        String imageUrl
 ) {
     public static ShopSummaryDto from(Shop s) {
         return new ShopSummaryDto(
                 s.getId(), s.getName(), s.getCategory(),
-                s.getPhone(), s.getAddress(), s.getTown(), s.getDescription()
+                s.getPhone(), s.getAddress(), s.getTown(),
+                s.getDescription(), s.getImageUrl()
         );
     }
 }

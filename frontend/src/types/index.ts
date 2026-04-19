@@ -6,6 +6,7 @@ export interface Shop {
   address: string
   town: string
   description: string | null
+  imageUrl: string | null
 }
 
 export interface Product {

@@ -1,8 +1,20 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  server: {
+    host: true,       // bind to 0.0.0.0 so mobile on same WiFi can connect
+    port: 5173,
+    proxy: {
+      // All /api calls are forwarded to the Spring Boot backend.
+      // Works from both localhost and the network IP — no CORS issues.
+      '/api': {
+        target: 'http://localhost:8085',
+        changeOrigin: true
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({

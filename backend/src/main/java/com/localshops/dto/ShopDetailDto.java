@@ -12,6 +12,7 @@ public record ShopDetailDto(
         String address,
         String town,
         String description,
+        String imageUrl,
         List<ProductDto> products
 ) {
     public static ShopDetailDto from(Shop s) {
@@ -21,7 +22,7 @@ public record ShopDetailDto(
         return new ShopDetailDto(
                 s.getId(), s.getName(), s.getCategory(),
                 s.getPhone(), s.getAddress(), s.getTown(),
-                s.getDescription(), products
+                s.getDescription(), s.getImageUrl(), products
         );
     }
 }

@@ -48,6 +48,12 @@ describe('ShopCard', () => {
     expect(link).toHaveAttribute('href', '/shops/1')
   })
 
+  test('renders maps button for location', () => {
+    renderShopCard()
+    const mapsBtn = screen.getByRole('button', { name: /view on google maps/i })
+    expect(mapsBtn).toBeInTheDocument()
+  })
+
   test('renders without description gracefully', () => {
     renderShopCard({ ...mockShop, description: null })
     expect(screen.getByText('Shri Fashion')).toBeInTheDocument()

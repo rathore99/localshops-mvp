@@ -7,7 +7,7 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
     { "key": "knownActiveShopId", "value": "1", "type": "string" },
-    { "key": "knownInactiveShopId", "value": "2", "type": "string" }
+    { "key": "knownInactiveShopId", "value": "6", "type": "string" }
   ],
   "item": [
     {
@@ -39,7 +39,7 @@
                   "    pm.expect(shop).to.have.property('category');",
                   "    pm.expect(shop).to.have.property('phone');",
                   "    pm.expect(shop).to.have.property('address');",
-                  "    pm.expect(shop.isActive).to.equal(true);",
+                  "    // isActive is filtered server-side — only active shops returned, field not exposed in DTO",
                   "  });",
                   "});"
                 ]
@@ -123,9 +123,10 @@
               "script": {
                 "exec": [
                   "pm.test('No inactive shops returned', () => {",
-                  "  pm.response.json().forEach(shop => {",
-                  "    pm.expect(shop.isActive).to.equal(true);",
-                  "  });",
+                  "  const body = pm.response.json();",
+                  "  // isActive not in DTO — verify by checking shop id 6 (Closed Test Shop) is absent",
+                  "  const ids = body.map(s => s.id);",
+                  "  pm.expect(ids).to.not.include(6);",
                   "});"
                 ]
               }
