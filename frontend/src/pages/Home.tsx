@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { shopApi } from '../api/shops'
 import ShopCard from '../components/ShopCard'
@@ -15,6 +16,8 @@ const CATEGORY_ICONS: Record<string, string> = {
 }
 
 export default function Home() {
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+
   const { data: shops = [], isLoading: shopsLoading, isError: shopsError } = useQuery({
     queryKey: ['shops'],
     queryFn: shopApi.getAll
@@ -24,6 +27,10 @@ export default function Home() {
     queryKey: ['categories'],
     queryFn: shopApi.getCategories
   })
+
+  const filteredShops = activeCategory
+    ? shops.filter(s => s.category === activeCategory)
+    : shops
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,25 +61,43 @@ export default function Home() {
           <section>
             <h2 className="text-base font-semibold text-gray-700 mb-3">Browse by category</h2>
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  className="flex-shrink-0 flex flex-col items-center gap-1 bg-white border border-gray-200
-                             rounded-xl px-4 py-3 text-xs font-medium text-gray-700
-                             hover:border-brand-400 hover:text-brand-600 transition-colors min-w-[72px]"
-                  onClick={() => {/* Feature 2: filter by category */}}
-                >
-                  <span className="text-2xl">{CATEGORY_ICONS[cat] ?? '🏪'}</span>
-                  {cat}
-                </button>
-              ))}
+              {categories.map(cat => {
+                const isActive = activeCategory === cat
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(isActive ? null : cat)}
+                    className={`flex-shrink-0 flex flex-col items-center gap-1 border rounded-xl px-4 py-3
+                               text-xs font-medium transition-colors min-w-[72px]
+                               ${isActive
+                                 ? 'bg-brand-500 border-brand-500 text-white'
+                                 : 'bg-white border-gray-200 text-gray-700 hover:border-brand-400 hover:text-brand-600'
+                               }`}
+                  >
+                    <span className="text-2xl">{CATEGORY_ICONS[cat] ?? '🏪'}</span>
+                    {cat}
+                  </button>
+                )
+              })}
             </div>
           </section>
         )}
 
         {/* Shops */}
         <section>
-          <h2 className="text-base font-semibold text-gray-700 mb-3">Shops near you</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-700">
+              {activeCategory ? `${activeCategory} shops` : 'Shops near you'}
+            </h2>
+            {activeCategory && (
+              <button
+                onClick={() => setActiveCategory(null)}
+                className="text-xs text-brand-600 font-medium hover:text-brand-700"
+              >
+                Clear filter ✕
+              </button>
+            )}
+          </div>
 
           {shopsLoading && (
             <div className="space-y-3">
@@ -98,17 +123,22 @@ export default function Home() {
             </div>
           )}
 
-          {!shopsLoading && !shopsError && shops.length === 0 && (
+          {!shopsLoading && !shopsError && filteredShops.length === 0 && (
             <div className="card text-center py-8">
               <p className="text-2xl mb-2">🏪</p>
-              <p className="text-gray-500 text-sm">No shops available right now.</p>
-              <p className="text-gray-400 text-xs mt-1">Check back soon — more shops are being onboarded.</p>
+              {activeCategory
+                ? <p className="text-gray-500 text-sm">No {activeCategory} shops found.</p>
+                : <p className="text-gray-500 text-sm">No shops available right now.</p>
+              }
+              {!activeCategory && (
+                <p className="text-gray-400 text-xs mt-1">Check back soon — more shops are being onboarded.</p>
+              )}
             </div>
           )}
 
-          {!shopsLoading && !shopsError && shops.length > 0 && (
+          {!shopsLoading && !shopsError && filteredShops.length > 0 && (
             <div className="space-y-3">
-              {shops.map(shop => (
+              {filteredShops.map(shop => (
                 <ShopCard key={shop.id} shop={shop} />
               ))}
             </div>

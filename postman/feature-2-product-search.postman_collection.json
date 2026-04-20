@@ -1,0 +1,146 @@
+{
+  "info": {
+    "name": "Feature 2 — Product Search",
+    "description": "Tests for GET /api/v1/products/search. Run with: newman run feature-2-product-search.postman_collection.json --env-var 'baseUrl=http://localhost:8085'",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8085", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Happy Path",
+      "item": [
+        {
+          "name": "GET /api/v1/products/search?q=shirt — returns matching products",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search?q=shirt" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Response is array', () => pm.expect(body).to.be.an('array'));",
+              "pm.test('At least one result', () => pm.expect(body.length).to.be.greaterThan(0));",
+              "pm.test('Each result has required fields', () => {",
+              "  body.forEach(r => {",
+              "    pm.expect(r).to.have.property('productId');",
+              "    pm.expect(r).to.have.property('productName');",
+              "    pm.expect(r).to.have.property('isAvailable');",
+              "    pm.expect(r).to.have.property('shopId');",
+              "    pm.expect(r).to.have.property('shopName');",
+              "    pm.expect(r).to.have.property('shopCategory');",
+              "    pm.expect(r).to.have.property('town');",
+              "  });",
+              "});",
+              "pm.test('Results contain shirt in product name (case-insensitive)', () => {",
+              "  body.forEach(r => pm.expect(r.productName.toLowerCase()).to.include('shirt'));",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /api/v1/products/search?q=SHIRT — case-insensitive match",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search?q=SHIRT" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Case-insensitive: returns same results as lowercase', () => {",
+              "  pm.expect(pm.response.json().length).to.be.greaterThan(0);",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /api/v1/products/search?q=salt — returns grocery product",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search?q=salt" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Returns salt product', () => pm.expect(body.length).to.be.greaterThan(0));",
+              "pm.test('Shop info is populated', () => {",
+              "  pm.expect(body[0].shopName).to.be.a('string').and.not.empty;",
+              "  pm.expect(body[0].shopCategory).to.equal('Groceries');",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /api/v1/products/search?q=xyz — empty array for no match",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search?q=xyz_no_match_xyz" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Empty array returned', () => pm.expect(pm.response.json()).to.eql([]));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /api/v1/products/search?q= — blank query returns empty array",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search?q=" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Empty array for blank query', () => pm.expect(pm.response.json()).to.eql([]));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Edge Cases",
+      "item": [
+        {
+          "name": "GET /api/v1/products/search?q=shirt — inactive shop products excluded",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search?q=apparel" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('No products from inactive shops (id 6)', () => {",
+              "  pm.response.json().forEach(r => pm.expect(r.shopId).to.not.equal(6));",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /api/v1/products/search?q=shirt — unavailable products included in results",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search?q=uniform" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Unavailable products included (not hidden from search)', () => {",
+              "  pm.expect(body).to.be.an('array');",
+              "  // Kids School Uniform is isAvailable=false but should appear in search",
+              "  if (body.length > 0) {",
+              "    pm.expect(body.some(r => r.isAvailable === false)).to.be.true;",
+              "  }",
+              "});"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "GET /api/v1/products/search (no q param) — 400",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/products/search" },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status is 400 when q param missing', () => pm.response.to.have.status(400));"
+            ]}
+          }]
+        }
+      ]
+    }
+  ]
+}

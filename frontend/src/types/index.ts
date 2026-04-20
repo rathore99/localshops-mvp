@@ -20,3 +20,15 @@ export interface Product {
 export interface ShopDetail extends Shop {
   products: Product[]
 }
+
+export interface ProductSearchResult {
+  productId: number
+  productName: string
+  description: string | null
+  price: number | null
+  isAvailable: boolean
+  shopId: number
+  shopName: string
+  shopCategory: string
+  town: string
+}
